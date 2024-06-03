@@ -1,0 +1,31 @@
+## THis can be done in a srun session
+
+wDIR=/home/mlu/scratch/4_Chp3/ADMIXTURE/per_species
+cd $wDIR
+
+#******This is the content in Samplename.txt******#
+Geum_riv_05
+Geum_riv_10
+Geum_urb_05
+Geum_urb_10
+Lina_rep_05
+Lina_rep_10
+Lina_vul_05
+Lina_vul_10
+Prim_ver_05
+Prim_ver_10
+Prim_vul_05
+Prim_vul_10
+Verb_nig_05
+Verb_nig_10
+Verb_tha_05
+Verb_tha_10
+Viol_hir_05
+Viol_hir_10
+Viol_odo_05
+Viol_odo_10
+#*************************************************#
+while IFS= read -r FILE
+do
+awk '{split($1,name,"."); print $1,name[2]}' "$FILE".nosex > ./PLOTTING/samplelist/"$FILE".list
+done < $wDIR/"Samplename.txt"
