@@ -1,0 +1,24 @@
+srun --partition=short --cpus-per-task=2 --mem=1G --pty bash
+
+##-0- Set working directory
+wDIR=/home/mlu/scratch/1_VCFs/3_raw_SNPs/BCFtools/240404_subset_by_perSpecies
+cd $wDIR
+
+##-1- Define variables
+VCF=cichlid_full_filtered_rename.vcf.gz
+
+##-2- Calculate LD with plink
+plink --vcf $VCF --double-id --allow-extra-chr \
+--set-missing-var-ids @:# \
+--maf 0.01 --geno 0.1 --mind 0.5 --chr 1 \
+--thin 0.1 -r2 gz --ld-window 100 --ld-window-kb 1000 \
+--ld-window-r2 0 \
+--make-bed --out cichlid_chr1
+
+
+
+
+
+
+
+

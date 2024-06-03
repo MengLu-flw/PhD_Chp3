@@ -1,0 +1,25 @@
+#!/bin/bash
+#SBATCH --job-name="vcftools_F"
+#SBATCH --output="/home/mlu/scratch/4_Chp3/Inbreeding/Fis_perSpecies/Slurm/vcftools_F_%A-%a.out"
+#SBATCH --error="/home/mlu/scratch/4_Chp3/Inbreeding/Fis_perSpecies/Slurm/vcftools_F_%A-%a.err"
+#SBATCH --cpus-per-task=1
+#SBATCH --partition=short
+#SBATCH --mem=1G
+#SBATCH --array=1-10%5
+#SBATCH --mail-type=FAIL,END
+#SBATCH --mail-user=m.lu-17@sms.ed.ac.uk
+
+
+##-1- Define variables
+wDIR=/home/mlu/scratch/4_Chp3/Inbreeding/Fis_perSpecies
+cd $wDIR
+
+##-2- Set up array job
+echo $SLURM_ARRAY_TASK_ID
+VCF=$(awk -v lineid=$SLURM_ARRAY_TASK_ID 'NR==lineid{print;exit}' $wDIR/VCFname.txt)
+
+##-3- Run command
+# F per sample
+time vcftools --gzvcf 240405_"$VCF"_MACfiltered.vcf.gz --het --out "$VCF"_vcftools
+# Missingness per sample
+time vcftools --gzvcf 240405_"$VCF"_MACfiltered.vcf.gz --missing-indv --out "$VCF"_vcftools

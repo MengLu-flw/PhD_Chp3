@@ -1,0 +1,39 @@
+#!/bin/bash
+#SBATCH --job-name="Geum_SYMall_admix"
+#SBATCH --output="/home/mlu/scratch/4_Chp3/ADMIXTURE/Slurm/Geum_SYMall_admix.out"
+#SBATCH --error="/home/mlu/scratch/4_Chp3/ADMIXTURE/Slurm/Geum_SYMall_admix.err"
+#SBATCH --cpus-per-task=8
+#SBATCH --partition=medium
+#SBATCH --mem=2G
+#SBATCH --mail-type=FAIL,END
+#SBATCH --mail-user=m.lu-17@sms.ed.ac.uk
+
+cd /home/mlu/scratch/4_Chp3/ADMIXTURE/Geum_sym_all
+
+#ln -s /home/mlu/projects/rbge/mlu/3_VCFs/1_MACfiltered/Geum_ALLsym_MACfiltered.vcf.gz ./
+#ln -s /home/mlu/scratch/4_Chp3/PCA/Geum_sym_all/Geum_ALLsym_05.prune.in ./
+
+
+##----Make .bed files for ADMIXTURE
+time plink --vcf Geum_ALLsym_MACfiltered.vcf.gz --double-id --allow-extra-chr --set-missing-var-ids @:#\$1,\$2 --extract Geum_ALLsym_05.prune.in --make-bed --out Geum_SYMall
+
+
+##----Modifications for the ADMIXTURE inputs
+awk '{$1="0";print $0}' Geum_SYMall.bim > Geum_SYMall.bim.tmp
+
+mv Geum_SYMall.bim.tmp Geum_SYMall.bim
+
+
+##----Run different K in a loop
+for i in {2..5}
+do
+ admixture --cv Geum_SYMall.bed $i > log${i}.out
+done
+
+
+##----Select the best K
+grep "CV" *out | awk '{print $3,$4}' | cut -c 4,7-20 > Geum_SYMall.cv.error
+#alternative code: awk '/CV/ {print $3,$4}' *out | cut -c 4,7-20 > Geum_SYMall.cv.error
+
+
+

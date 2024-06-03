@@ -1,0 +1,107 @@
+#!/bin/bash
+#SBATCH --job-name="PLINK_Fis"
+#SBATCH --output="/home/mlu/scratch/4_Chp3/Inbreeding/Slurm/PLINK_Fis.out"
+#SBATCH --error="/home/mlu/scratch/4_Chp3/Inbreeding/Slurm/PLINK_Fis.err"
+#SBATCH --cpus-per-task=4
+#SBATCH --partition=medium
+#SBATCH --mem=1G
+#SBATCH --mail-type=FAIL,END
+#SBATCH --mail-user=m.lu-17@sms.ed.ac.uk
+
+echo "Geum"
+## Go to working directory-------------------
+cd /home/mlu/scratch/4_Chp3/Inbreeding/Geum
+
+ln -s /home/mlu/projects/rbge/mlu/3_VCFs/1_MACfiltered/Geum_MACfiltered.vcf.gz ./
+ln -s /home/mlu/scratch/4_Chp3/PCA/Geum/Geum_05.prune.in ./
+
+
+## Fis calculation ---------------------------------------
+time plink --vcf Geum_MACfiltered.vcf.gz \
+--double-id \
+--allow-extra-chr \
+--set-missing-var-ids @:#\$1,\$2 \
+--extract Geum_05.prune.in \
+--het \
+--out Geum_05_Fis
+
+
+echo "Lina"
+## Go to working directory-------------------
+cd /home/mlu/scratch/4_Chp3/Inbreeding/Linaria
+
+ln -s /home/mlu/scratch/4_Chp3/PCA/Linaria/Lina_05.prune.in ./
+ln -s /home/mlu/projects/rbge/mlu/3_VCFs/1_MACfiltered/Lina_MACfiltered.vcf.gz ./
+
+
+## Fis calculation ---------------------------------------
+time plink --vcf Lina_MACfiltered.vcf.gz \
+--double-id \
+--allow-extra-chr \
+--set-missing-var-ids @:#\$1,\$2 \
+--extract Lina_05.prune.in \
+--het \
+--out Lina_05_Fis
+
+
+echo "Prim"
+## Go to working directory-------------------
+cd /home/mlu/scratch/4_Chp3/Inbreeding/Primula
+
+ln -s /home/mlu/scratch/4_Chp3/PCA/Primula/Prim_05.prune.in ./
+ln -s /home/mlu/projects/rbge/mlu/3_VCFs/1_MACfiltered/Prim_MACfiltered.vcf.gz ./
+
+
+## Fis calculation ---------------------------------------
+time plink --vcf Prim_MACfiltered.vcf.gz \
+--double-id \
+--allow-extra-chr \
+--set-missing-var-ids @:#\$1,\$2 \
+--extract Prim_05.prune.in \
+--het \
+--out Prim_05_Fis
+
+
+echo "Verb"
+## Go to working directory-------------------
+cd /home/mlu/scratch/4_Chp3/Inbreeding/Verbascum
+
+ln -s /home/mlu/scratch/4_Chp3/PCA/Verbascum/Verb_05.prune.in ./
+ln -s /home/mlu/projects/rbge/mlu/3_VCFs/1_MACfiltered/Verb_MACfiltered.vcf.gz ./
+
+
+## Fis calculation ---------------------------------------
+time plink --vcf Verb_MACfiltered.vcf.gz \
+--double-id \
+--allow-extra-chr \
+--set-missing-var-ids @:#\$1,\$2 \
+--extract Verb_05.prune.in \
+--het \
+--out Verb_05_Fis
+
+
+echo "Viol"
+## Go to working directory-------------------
+cd /home/mlu/scratch/4_Chp3/Inbreeding/Viola
+
+ln -s /home/mlu/scratch/4_Chp3/PCA/Viola/Viol_05.prune.in ./
+ln -s /home/mlu/projects/rbge/mlu/3_VCFs/1_MACfiltered/Viol_MACfiltered.vcf.gz ./
+
+
+## Fis calculation ---------------------------------------
+time plink --vcf Viol_MACfiltered.vcf.gz \
+--double-id \
+--allow-extra-chr \
+--set-missing-var-ids @:#\$1,\$2 \
+--extract Viol_05.prune.in \
+--het \
+--out Viol_05_Fis
+
+
+
+
+
+
+
+
+

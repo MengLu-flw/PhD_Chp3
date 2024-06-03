@@ -1,0 +1,62 @@
+##---------------------Create the Conda env
+##-0- Save an interactive space on Slurm
+srun --partition=medium --cpus-per-task=8 --mem=12G --pty bash # Have a large mem reserved is also IMPORTANT! 2G just won't work!
+
+##-1- Find working directory & evn
+
+conda create -n genomescope -c conda-forge -c bioconda python=3.10 numpy=1.22.0 scipy r-devtools r-essentials r-base
+conda install conda-forge::r-viridis
+conda install -c conda-forge r-minpack.lm r-argparse
+
+conda update -n genomescope --all
+
+source activate /mnt/shared/scratch/mlu/apps/conda/envs/genomescope
+
+
+##---------------------Install FastK on CropDiveristy
+conda install bioconda::fastk
+
+
+##---------------------Compile smudgeplot on CropDiveristy
+cd ~/scratch/apps/smudgeplot
+
+# Prepare for installation
+git clone https://github.com/KamilSJaron/smudgeplot
+cd smudgeplot
+
+# Install
+Rscript install.R
+
+# Check if it was successful
+/home/mlu/scratch/apps/smudgeplot/smudgeplot/exec/smudgeplot.py --version
+
+
+##---------------------Install Genomescope on CropDiveristy
+cd /home/mlu/scratch/apps/
+
+#-1- Install genomescope2 plotting functin, facilitated by R
+git clone https://github.com/tbenavi1/genomescope2.0.git
+cd genomescope2.0/
+
+Rscript install.R
+
+# Check if it was successful
+/home/mlu/scratch/apps/genomescope2.0/genomescope.R -h
+
+#After installation of the R package, command line users can run the modeling with the R script genomescope.R, making sure that genomescope.R is in your PATH.
+#genomescope.R -i histogram_file -o output_dir -k k-mer_length
+
+
+#-2- Install genomescope2 via mamba 
+conda config --set channel_priority flexible #done
+
+conda install -c conda-forge mamba #done
+mamba install genomescope2
+
+mamba update genomescope2
+
+# Run this command below to ensure all libraries and dependencies are compatible to each other - IMPORTANT
+conda update -n genomescope --all
+
+
+

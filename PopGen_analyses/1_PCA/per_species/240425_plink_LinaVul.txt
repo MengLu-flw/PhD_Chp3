@@ -1,0 +1,55 @@
+#!/bin/bash
+#SBATCH --job-name="LinaVul_PCA"
+#SBATCH --output="/home/mlu/scratch/4_Chp3/PCA/Lina_vul/LinaVul_PCA.out"
+#SBATCH --error="/home/mlu/scratch/4_Chp3/PCA/Lina_vul/LinaVul_PCA.err"
+#SBATCH --cpus-per-task=1
+#SBATCH --partition=short
+#SBATCH --mem=1G
+#SBATCH --mail-type=FAIL,END
+#SBATCH --mail-user=m.lu-17@sms.ed.ac.uk
+
+
+## -0- Define variables-----------------------------------
+cd /home/mlu/scratch/4_Chp3/PCA/Lina_vul
+
+VCF=240405_Lina_vul_MACfiltered.vcf.gz
+name=Lina_vul
+
+
+## -1- Prepare input VCF --------------------------------
+ln -s /home/mlu/scratch/1_VCFs/4_filtered_SNPs/per_species/$VCF ./
+
+
+## -2- LD pruning ---------------------------------------
+#--a larger stepping size + more strict threshold
+time plink --vcf $VCF \
+--double-id \
+--allow-extra-chr \
+--set-missing-var-ids @:#\$1,\$2 \
+--indep-pairwise 50 10 0.1 \
+--out 10_$name
+
+#--a tighter stepping size + more relaxed threshold
+time plink --vcf $VCF \
+--double-id \
+--allow-extra-chr \
+--set-missing-var-ids @:#\$1,\$2 \
+--indep-pairwise 50 5 0.2 \
+--out 05_$name
+
+## -3- PCA with PLINK ------------------------------------
+time plink --vcf $VCF \
+--double-id \
+--allow-extra-chr \
+--set-missing-var-ids @:#\$1,\$2 \
+--extract 10_$name.prune.in \
+--make-bed --pca \
+--out 10_$name
+
+time plink --vcf $VCF \
+--double-id \
+--allow-extra-chr \
+--set-missing-var-ids @:#\$1,\$2 \
+--extract 05_$name.prune.in \
+--make-bed --pca \
+--out 05_$name

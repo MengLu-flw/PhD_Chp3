@@ -1,0 +1,119 @@
+cd /home/mlu/scratch/1_VCFs/4_filtered_SNPs
+
+ln -s /home/mlu/projects/rbge/mlu/4_gimble/Primula/gimble.vcf.gz /home/mlu/scratch/1_VCFs/4_filtered_SNPs/Prim_gimble.vcf.gz
+
+ln -s /home/mlu/projects/rbge/mlu/4_gimble/Linaria/gimble.vcf.gz /home/mlu/scratch/1_VCFs/4_filtered_SNPs/Lina_gimble.vcf.gz
+
+ln -s /home/mlu/projects/rbge/mlu/4_gimble/Geum/gimble.vcf.gz /home/mlu/scratch/1_VCFs/4_filtered_SNPs/Geum_gimble.vcf.gz
+
+ln -s /home/mlu/projects/rbge/mlu/4_gimble/Geum_ALLsym/gimble.vcf.gz /home/mlu/scratch/1_VCFs/4_filtered_SNPs/Geum_ALLsym_gimble.vcf.gz
+
+ln -s /home/mlu/projects/rbge/mlu/4_gimble/Geum_cf_sym/gimble.vcf.gz /home/mlu/scratch/1_VCFs/4_filtered_SNPs/Geum_cfsym_gimble.vcf.gz
+
+
+
+
+#!/bin/bash
+#SBATCH --job-name="countSNP"
+#SBATCH --output="/home/mlu/scratch/1_VCFs/4_filtered_SNPs/Slurm/countSNP.out"
+#SBATCH --error="/home/mlu/scratch/1_VCFs/4_filtered_SNPs/Slurm/countSNP.err"
+#SBATCH --cpus-per-task=8
+#SBATCH --partition=short
+#SBATCH --mem=4G
+#SBATCH --mail-type=FAIL,END
+#SBATCH --mail-user=m.lu-17@sms.ed.ac.uk
+
+cd /home/mlu/scratch/1_VCFs/4_filtered_SNPs
+
+echo Geum_ALLsym_gimble.vcf.gz > original_SNP_cout.txt
+time bcftools view -H Geum_ALLsym_gimble.vcf.gz | wc -l >> original_SNP_cout.txt
+
+
+echo Geum_cfsym_gimble.vcf.gz >> original_SNP_cout.txt
+time bcftools view -H Geum_cfsym_gimble.vcf.gz | wc -l >> original_SNP_cout.txt
+
+
+echo Geum_gimble.vcf.gz >> original_SNP_cout.txt
+time bcftools view -H Geum_cfsym_gimble.vcf.gz | wc -l >> original_SNP_cout.txt
+
+
+echo Lina_gimble.vcf.gz >> original_SNP_cout.txt
+time bcftools view -H Geum_cfsym_gimble.vcf.gz | wc -l >> original_SNP_cout.txt
+
+
+echo Prim_gimble.vcf.gz >> original_SNP_cout.txt
+time bcftools view -H Geum_cfsym_gimble.vcf.gz | wc -l >> original_SNP_cout.txt
+
+
+
+
+
+
+#!/bin/bash
+#SBATCH --job-name="filterSNP_mac"
+#SBATCH --output="/home/mlu/scratch/1_VCFs/4_filtered_SNPs/Slurm/filterSNP_mac.out"
+#SBATCH --error="/home/mlu/scratch/1_VCFs/4_filtered_SNPs/Slurm/filterSNP_mac.err"
+#SBATCH --cpus-per-task=8
+#SBATCH --partition=medium
+#SBATCH --mem=4G
+#SBATCH --mail-type=FAIL,END
+#SBATCH --mail-user=m.lu-17@sms.ed.ac.uk
+
+cd /home/mlu/scratch/1_VCFs/4_filtered_SNPs
+
+
+
+
+time vcftools --gzvcf Geum_ALLsym_gimble.vcf.gz --minQ 30 --max-missing 1 --mac 2 --remove-indels --min-alleles 2 --max-alleles 2 --keep-INFO-all --recode --stdout > Geum_ALLsym_MACfiltered.vcf
+time bgzip Geum_ALLsym_MACfiltered.vcf
+
+echo Geum_ALLsym_MACfiltered.vcf.gz > filtered_SNP_mac.txt
+time bcftools view -H Geum_ALLsym_MACfiltered.vcf.gz | wc -l >> filtered_SNP_mac.txt
+
+
+
+
+time vcftools --gzvcf Geum_cfsym_gimble.vcf.gz --minQ 30 --max-missing 1 --mac 2 --remove-indels --min-alleles 2 --max-alleles 2 --keep-INFO-all --recode --stdout > Geum_cfsym_MACfiltered.vcf
+time bgzip Geum_cfsym_MACfiltered.vcf
+
+echo Geum_cfsym_MACfiltered.vcf.gz >> filtered_SNP_mac.txt
+time bcftools view -H Geum_cfsym_MACfiltered.vcf.gz | wc -l >> filtered_SNP_mac.txt
+
+
+
+
+time vcftools --gzvcf Geum_gimble.vcf.gz --minQ 30 --max-missing 1 --mac 2 --remove-indels --min-alleles 2 --max-alleles 2 --keep-INFO-all --recode --stdout > Geum_MACfiltered.vcf
+time bgzip Geum_MACfiltered.vcf
+
+echo Geum_MACfiltered.vcf.gz >> filtered_SNP_mac.txt
+time bcftools view -H Geum_MACfiltered.vcf.gz | wc -l >> filtered_SNP_mac.txt
+
+
+
+
+time vcftools --gzvcf Lina_gimble.vcf.gz --minQ 30 --max-missing 1 --mac 2 --remove-indels --min-alleles 2 --max-alleles 2 --keep-INFO-all --recode --stdout > Lina_MACfiltered.vcf
+time bgzip Lina_MACfiltered.vcf
+
+echo Lina_MACfiltered.vcf.gz >> filtered_SNP_mac.txt
+time bcftools view -H Lina_MACfiltered.vcf.gz | wc -l >> filtered_SNP_mac.txt
+
+
+
+
+time vcftools --gzvcf Prim_gimble.vcf.gz --minQ 30 --max-missing 1 --mac 2 --remove-indels --min-alleles 2 --max-alleles 2 --keep-INFO-all --recode --stdout > Prim_MACfiltered.vcf
+time bgzip Prim_MACfiltered.vcf
+
+echo Prim_MACfiltered.vcf.gz >> filtered_SNP_mac.txt
+time bcftools view -H Prim_MACfiltered.vcf.gz | wc -l >> filtered_SNP_mac.txt
+
+
+
+
+
+
+
+
+
+
+
+

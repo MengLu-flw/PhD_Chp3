@@ -1,0 +1,130 @@
+#!/bin/bash
+#SBATCH --job-name="VerbTha_GenoS_31k"
+#SBATCH --output="/home/mlu/scratch/0_GenomeScope/VerbThap/array_out/VerbTha_GenoS_31k_%A-%a.out"
+#SBATCH --error="/home/mlu/scratch/0_GenomeScope/VerbThap/array_out/VerbTha_GenoS_31k_%A-%a.err"
+#SBATCH --cpus-per-task=8
+#SBATCH --partition=medium
+#SBATCH --mem=25G
+#SBATCH --array=1-14%7
+#SBATCH --mail-type=FAIL,END
+#SBATCH --mail-user=m.lu-17@sms.ed.ac.uk
+
+
+##-0- Define variables
+oDIR=/home/mlu/projects/rbge/mlu/1_trimdata_fastp/all_trimmed
+DATADIR=/home/mlu/scratch/0_GenomeScope/VerbThap
+LISTDIR=/home/mlu/projects/rbge/mlu/5_GenomeScope
+
+cd $DATADIR
+
+#ln -s $oDIR/ML061*_trimmed.fq.gz ./
+#ln -s $oDIR/ML062*_trimmed.fq.gz ./
+#ln -s $oDIR/ML068*_trimmed.fq.gz ./
+#ln -s $oDIR/ML076*_trimmed.fq.gz ./
+#ln -s $oDIR/ML083*_trimmed.fq.gz ./
+#ln -s $oDIR/ML089*_trimmed.fq.gz ./
+#ln -s $oDIR/ML105*_trimmed.fq.gz ./
+#ln -s $oDIR/ML110*_trimmed.fq.gz ./
+#ln -s $oDIR/ML117*_trimmed.fq.gz ./
+#ln -s $oDIR/ML120*_trimmed.fq.gz ./
+#ln -s $oDIR/ML123*_trimmed.fq.gz ./
+#ln -s $oDIR/ML128*_trimmed.fq.gz ./
+#ln -s $oDIR/ML133*_trimmed.fq.gz ./
+#ln -s $oDIR/ML140*_trimmed.fq.gz ./
+
+##-1- Set up array job input
+echo $SLURM_ARRAY_TASK_ID
+SEQNAME=$(awk -v lineid=$SLURM_ARRAY_TASK_ID 'NR==lineid{print;exit}' $LISTDIR/VerbThap.list) ### This is a list containing output names
+
+
+##-2- Set working directory & env
+cd $DATADIR
+
+source activate /mnt/shared/scratch/mlu/apps/conda/envs/genomescope
+
+#########---------------1. Make kmer database using Fast K--------------------############
+#First, you need to generate a kmer database with FastK
+## Make kmer database by running FastK with kmer size of 31, 4 threads
+
+echo 'Making Kmer database'
+time FastK -v -t1 -k31 -M24 -T6 "$DATADIR"/"$SEQNAME"*.fq.gz -N"$SEQNAME"_FastK_Table
+
+
+#Make histogram with Histex
+time Histex -G "$SEQNAME"_FastK_Table > "$SEQNAME"_k31_GS.hist
+
+
+
+#########-----2. Run Genomescope by fitting different ploidy models------------------#####
+
+echo 'Running GenomeScope'
+time /home/mlu/scratch/apps/genomescope2.0/genomescope.R -p 2 -i "$SEQNAME"_k31_GS.hist -o ./"$SEQNAME"_dip -n "$SEQNAME"_dip -k 31 --verbose
+
+#time /home/mlu/scratch/apps/genomescope2.0/genomescope.R -p 4 -i "$SEQNAME"_k31_GS.hist -o ./"$SEQNAME"_tet -n "$SEQNAME"_tet -k 31 --verbose
+
+#time /home/mlu/scratch/apps/genomescope2.0/genomescope.R -p 6 -i "$SEQNAME"_k31_GS.hist -o ./"$SEQNAME"_hex -n "$SEQNAME"_hex -k 31 --verbose
+
+#time /home/mlu/scratch/apps/genomescope2.0/genomescope.R -p 8 -i "$SEQNAME"_k31_GS.hist -o ./"$SEQNAME"_oct -n "$SEQNAME"_oct -k 31 --verbose
+
+
+
+#########------------------ Run Smudgeplots based on kmer database -----------------#####
+#########----------------(This analysis is independent to Genomescope)---------------#####
+#!/bin/bash
+#SBATCH --job-name="VerbTha_Smudgeplots_31k"
+#SBATCH --output="/home/mlu/scratch/0_GenomeScope/VerbThap/array_out/VerbTha_Smudgeplots_31k_%A-%a.out"
+#SBATCH --error="/home/mlu/scratch/0_GenomeScope/VerbThap/array_out/VerbTha_Smudgeplots_31k_%A-%a.err"
+#SBATCH --cpus-per-task=8
+#SBATCH --partition=medium
+#SBATCH --mem=20G
+#SBATCH --array=1-14%7
+#SBATCH --mail-type=FAIL,END
+#SBATCH --mail-user=m.lu-17@sms.ed.ac.uk
+
+
+##-0- Define variables
+oDIR=/home/mlu/projects/rbge/mlu/1_trimdata_fastp/all_trimmed
+DATADIR=/home/mlu/scratch/0_GenomeScope/VerbThap
+LISTDIR=/home/mlu/projects/rbge/mlu/5_GenomeScope
+
+cd $DATADIR
+
+
+##-1- Set up array job input
+echo $SLURM_ARRAY_TASK_ID
+SEQNAME=$(awk -v lineid=$SLURM_ARRAY_TASK_ID 'NR==lineid{print;exit}' $LISTDIR/VerbThap.list) ### This is a list containing output names
+
+
+##-2- Set conda env
+source activate /mnt/shared/scratch/mlu/apps/conda/envs/genomescope
+
+#########---------------1. Make kmer database using Fast K--------------------############
+#First, you need to generate a kmer database with FastK
+## Make kmer database by running FastK with kmer size of 31, 4 threads
+
+#echo 'Making Kmer database'
+#time FastK -v -t1 -k31 -M24 -T6 "$DATADIR"/"$SEQNAME"*.fq.gz -N"$SEQNAME"_FastK_Table
+
+
+#Make histogram with Histex
+#time Histex -G "$SEQNAME"_FastK_Table > "$SEQNAME"_k31_GS.hist
+
+#########------------------------- 2. Run Smudgeplots ------------------------############
+echo 'Running Smudgeplot'
+time /home/mlu/scratch/apps/smudgeplot/smudgeplot/exec/smudgeplot.py hetkmers -L 10 -t 4 --verbose -o "$SEQNAME"_k31_pairs "$SEQNAME".ktab
+
+#Plot smudgeplot
+time /home/mlu/scratch/apps/smudgeplot/smudgeplot/exec/smudgeplot.py plot -t "$SEQNAME" -o "$SEQNAME"_k31_smudgeplot "$SEQNAME"_k31_pairs_text.smu
+
+
+
+
+
+
+
+
+
+
+
+#ML062_dip/  ML076_dip/  ML089_dip/  ML110_dip/  ML120_dip/  ML128_dip/  ML140_dip/
+#ML061_dip/  ML068_dip/  ML083_dip/  ML105_dip/  ML117_dip/  ML123_dip/  ML133_dip/

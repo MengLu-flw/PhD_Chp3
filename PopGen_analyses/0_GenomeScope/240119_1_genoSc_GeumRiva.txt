@@ -1,0 +1,63 @@
+#!/bin/bash
+#SBATCH --job-name="GeumRiv_GenoS_31k"
+#SBATCH --output="/home/mlu/scratch/0_GenomeScope/GeumRiva/array_out/GeumRiv_GenoS_31k_%A-%a.out"
+#SBATCH --error="/home/mlu/scratch/0_GenomeScope/GeumRiva/array_out/GeumRiv_GenoS_31k_%A-%a.err"
+#SBATCH --cpus-per-task=8
+#SBATCH --partition=long
+#SBATCH --mem=25G
+#SBATCH --array=1-17%6
+#SBATCH --mail-type=FAIL,END
+#SBATCH --mail-user=m.lu-17@sms.ed.ac.uk
+
+
+##-0- Define variables
+DATADIR=/home/mlu/scratch/0_GenomeScope/GeumRiva
+LISTDIR=/home/mlu/scratch/0_GenomeScope
+
+
+##-1- Set up array job input
+echo $SLURM_ARRAY_TASK_ID
+SEQNAME=$(awk -v lineid=$SLURM_ARRAY_TASK_ID 'NR==lineid{print;exit}' $LISTDIR/GeumRiva.list) ### This is a list containing output names
+
+
+##-2- Set working directory & env
+cd $DATADIR
+
+source activate /mnt/shared/scratch/mlu/apps/conda/envs/genomescope
+
+#########---------------1. Make kmer database using Fast K--------------------############
+#First, you need to generate a kmer database with FastK
+## Make kmer database by running FastK with kmer size of 31, 4 threads
+
+echo 'Making Kmer database'
+time FastK -v -t1 -k31 -M24 -T6 "$DATADIR"/"$SEQNAME"/*.fq.gz -N"$SEQNAME"_FastK_Table
+
+
+#Make histogram with Histex
+time Histex -G "$SEQNAME"_FastK_Table > "$SEQNAME"_k31_GS.hist
+
+
+
+#########-----2. Run Genomescope by fitting different ploidy models------------------#####
+
+echo 'Running GenomeScope'
+time /home/mlu/scratch/apps/genomescope2.0/genomescope.R -p 2 -i "$SEQNAME"_k31_GS.hist -o ./"$SEQNAME"_dip -n "$SEQNAME"_dip -k 31 --verbose
+
+time /home/mlu/scratch/apps/genomescope2.0/genomescope.R -p 4 -i "$SEQNAME"_k31_GS.hist -o ./"$SEQNAME"_tet -n "$SEQNAME"_tet -k 31 --verbose
+
+time /home/mlu/scratch/apps/genomescope2.0/genomescope.R -p 6 -i "$SEQNAME"_k31_GS.hist -o ./"$SEQNAME"_hex -n "$SEQNAME"_hex -k 31 --verbose
+
+time /home/mlu/scratch/apps/genomescope2.0/genomescope.R -p 8 -i "$SEQNAME"_k31_GS.hist -o ./"$SEQNAME"_oct -n "$SEQNAME"_oct -k 21 --verbose
+
+
+
+#########------------------3. Run Smudgeplots based on kmer database-----------------#####
+#########----------------(This analysis is independent to Genomescope)---------------#####
+
+echo 'Running Smudgeplot'
+time /home/mlu/scratch/apps/smudgeplot/smudgeplot/exec/smudgeplot.py hetkmers -L 10 -t 4 --verbose -o "$SEQNAME"_k31_pairs "$SEQNAME".ktab
+
+#Plot smudgeplot
+time /home/mlu/scratch/apps/smudgeplot/smudgeplot/exec/smudgeplot.py plot -t "$SEQNAME" -o "$SEQNAME"_k31_smudgeplot "$SEQNAME"_k31_pairs_text.smu
+
+
